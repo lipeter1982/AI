@@ -23,7 +23,8 @@ except Exception as e:
 
 # Create DataFrame
 print("Creating DataFrame...")
-df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+df = pd.DataFrame(
+    ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
 df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
 
 # Perform seasonal decomposition using STL-LOESS
@@ -35,7 +36,7 @@ trend = decomposition.trend
 seasonal = decomposition.seasonal
 residual = decomposition.resid
 
-plt.figure(figsize=(10,10))
+plt.figure(figsize=(10, 10))
 plt.suptitle("Seasonal Decomposition")
 plt.subplot(411)
 plt.plot(df['close'], label='Original')
@@ -46,7 +47,7 @@ plt.plot(trend, label='Trend')
 plt.legend(loc='upper left')
 plt.ylabel("Price")
 plt.subplot(413)
-plt.plot(seasonal,label='Seasonality')
+plt.plot(seasonal, label='Seasonality')
 plt.legend(loc='upper left')
 plt.ylabel("Price")
 plt.subplot(414)
@@ -66,7 +67,8 @@ prophet_model.fit(prophet_df)
 
 # Perform cross-validation for Prophet model
 print("Performing cross-validation for Prophet model...")
-cv_results = cross_validation(prophet_model, initial='30 days', period='1 days', horizon='1 hours')
+cv_results = cross_validation(
+    prophet_model, initial='30 days', period='1 days', horizon='1 hours')
 performance = performance_metrics(cv_results)
 
 print("Prophet model performance:")
@@ -77,20 +79,23 @@ print("Making predictions using the Prophet model...")
 future = prophet_model.make_future_dataframe(periods=1, freq='H')
 forecast = prophet_model.predict(future)
 next_hour_prediction = forecast[['ds', 'yhat']].iloc[-1]
-print(f"Predicted price for {next_hour_prediction['ds']}: ${next_hour_prediction['yhat']:.2f}")
+print(
+    f"Predicted price for {next_hour_prediction['ds']}: ${next_hour_prediction['yhat']:.2f}")
 
 # Preprocessing for LSTM
 print("Preprocessing for LSTM...")
+
 
 def create_sequences(data, seq_length):
     x = []
     y = []
 
     for i in range(len(data) - seq_length - 1):
-        x.append(data[i : (i + seq_length), 0])
+        x.append(data[i: (i + seq_length), 0])
         y.append(data[i + seq_length, 0])
 
     return np.array(x), np.array(y)
+
 
 # Scale the data
 print("Scaling the data...")
@@ -110,7 +115,8 @@ x_lstm = x_lstm.reshape(x_lstm.shape[0], x_lstm.shape[1], 1)
 
 # Split data into training and testing sets
 print("Splitting data into training and testing sets...")
-x_train, x_test, y_train, y_test = train_test_split(x_lstm, y_lstm, test_size=0.2, shuffle=False)
+x_train, x_test, y_train, y_test = train_test_split(
+    x_lstm, y_lstm, test_size=0.2, shuffle=False)
 
 # Define LSTM model architecture
 print("Defining LSTM model architecture...")
@@ -142,5 +148,6 @@ print(f"Predicted price for {prediction_time}: ${predicted[0][0]:,.2f}")
 
 # Compare Prophet and LSTM predictions
 print("\nComparison of predictions:")
-print(f"Prophet predicted price for {next_hour_prediction['ds']}: ${next_hour_prediction['yhat']:.2f}")
+print(
+    f"Prophet predicted price for {next_hour_prediction['ds']}: ${next_hour_prediction['yhat']:.2f}")
 print(f"LSTM predicted price for {prediction_time}: ${predicted[0][0]:,.2f}")
